@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nautical Village Network</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="ui">
+        <div id="header">
+            <h1>🏝️ Nautical Village Network</h1>
+            <div id="resources">
+                <span class="resource">🪙 <span id="gold">100</span></span>
+                <span class="resource">🐟 <span id="fish">50</span></span>
+                <span class="resource">🪵 <span id="wood">30</span></span>
+                <span class="resource">👥 <span id="population">10</span></span>
+            </div>
+        </div>
+        <div id="panel">
+            <div id="villageInfo" class="hidden">
+                <h3 id="villageName"></h3>
+                <p id="villageDesc"></p>
+                <div id="villageStats"></div>
+                <div id="actions"></div>
+            </div>
+            <div id="buildMenu" class="hidden">
+                <h3>🏗️ Build</h3>
+                <button class="build-btn" data-type="house" data-cost="wood:20,gold:10">🏠 House (20🪵 10🪙)</button>
+                <button class="build-btn" data-type="dock" data-cost="wood:30,fish:10,gold:20">⚓ Dock (30🪵 10🐟 20🪙)</button>
+                <button class="build-btn" data-type="market" data-cost="wood:40,gold:50">🏪 Market (40🪵 50🪙)</button>
+                <button class="build-btn" data-type="temple" data-cost="wood:50,gold:100,fish:20">🏛️ Temple (50🪵 100🪙 20🐟)</button>
+                <button class="build-btn" data-type="lighthouse" data-cost="wood:60,gold:200">🗼 Lighthouse (60🪵 200🪙)</button>
+            </div>
+            <div id="routeMenu" class="hidden">
+                <h3>🛤️ Trade Route</h3>
+                <p>Select another village to create a route</p>
+                <div id="routeCost">Cost: 50🪙 + 20🪵</div>
+            </div>
+            <div id="messages"></div>
+        </div>
+        <div id="legend">
+            <span>🏠 House</span>
+            <span>⚓ Dock</span>
+            <span>🏪 Market</span>
+            <span>🏛️ Temple</span>
+            <span>🗼 Lighthouse</span>
+            <span>🛤️ Route</span>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
