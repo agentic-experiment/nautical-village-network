@@ -69,7 +69,7 @@ body {
 }
 
 #panel {
-    pointer-events: auto;
+    pointer-events: none;
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -80,6 +80,7 @@ body {
 }
 
 #panel > div {
+    pointer-events: auto;
     background: rgba(10, 26, 42, 0.92);
     border: 1px solid rgba(78, 205, 196, 0.15);
     border-radius: 12px;
@@ -199,7 +200,7 @@ body {
 .hidden { display: none !important; }
 
 #legend {
-    pointer-events: auto;
+    pointer-events: none;
     display: flex;
     flex-wrap: wrap;
     gap: 12px;

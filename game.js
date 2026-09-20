@@ -119,8 +119,8 @@
             id: 0,
             name: 'Coral Haven',
             desc: 'A sheltered reef lagoon famous for pearl divers, oyster beds, and calm turquoise waters.',
-            nx: 0.22,
-            ny: 0.28,
+            nx: 0.15,
+            ny: 0.22,
             baseRadius: 52,
             shapeSeed: 42,
             population: 18,
@@ -133,8 +133,8 @@
             id: 1,
             name: 'Timber Atoll',
             desc: 'A ring of dense ironwood palms and fragrant cedar trees that supply shipbuilders.',
-            nx: 0.50,
-            ny: 0.24,
+            nx: 0.52,
+            ny: 0.18,
             baseRadius: 58,
             shapeSeed: 108,
             population: 15,
@@ -147,8 +147,8 @@
             id: 2,
             name: 'Pelican Reach',
             desc: 'Chalk cliffs and limestone arches populated by seabirds and deep-water fishermen.',
-            nx: 0.80,
-            ny: 0.32,
+            nx: 0.88,
+            ny: 0.26,
             baseRadius: 50,
             shapeSeed: 77,
             population: 12,
@@ -161,8 +161,8 @@
             id: 3,
             name: 'Sunken Shoals',
             desc: 'A low-lying sandbar island surrounded by azure shallows and bountiful clam beds.',
-            nx: 0.26,
-            ny: 0.70,
+            nx: 0.18,
+            ny: 0.74,
             baseRadius: 48,
             shapeSeed: 91,
             population: 10,
@@ -175,8 +175,8 @@
             id: 4,
             name: 'Gilded Cay',
             desc: 'A vibrant crossroad isle where merchants, sea captains, and travelers gather to barter.',
-            nx: 0.56,
-            ny: 0.72,
+            nx: 0.54,
+            ny: 0.78,
             baseRadius: 62,
             shapeSeed: 13,
             population: 22,
@@ -189,8 +189,8 @@
             id: 5,
             name: "Siren's Crest",
             desc: 'A mystical high promontory that overlooks the endless horizon; ideal for a beacon.',
-            nx: 0.82,
-            ny: 0.68,
+            nx: 0.88,
+            ny: 0.72,
             baseRadius: 54,
             shapeSeed: 55,
             population: 14,
@@ -258,11 +258,16 @@
     function getIslandCenter(island) {
         const w = window.innerWidth;
         const h = window.innerHeight;
-        // Keep inside bounds with padding
-        const padX = 80;
-        const padY = 100;
-        const x = padX + island.nx * (w - padX * 2);
-        const y = padY + island.ny * (h - padY * 2 - 40);
+        // On screens wider than 768px, reserve space for the right panel so islands are always accessible
+        const rightReserve = w > 768 ? 330 : 0;
+        const padLeft = 80;
+        const padRight = 50;
+        const playWidth = Math.max(w - rightReserve - padLeft - padRight, 280);
+        const padY = 90;
+        const playHeight = Math.max(h - padY * 2 - 40, 220);
+
+        const x = padLeft + island.nx * playWidth;
+        const y = padY + island.ny * playHeight;
         return { x, y };
     }
 
@@ -271,7 +276,13 @@
             const island = islandsData[i];
             const pt = getIslandCenter(island);
             const dist = Math.hypot(px - pt.x, py - pt.y);
-            if (dist <= island.baseRadius + 10) {
+            // Island body or reef click
+            if (dist <= island.baseRadius + 25) {
+                return island;
+            }
+            // Nameplate tag click
+            const tagY = pt.y + island.baseRadius + 20;
+            if (Math.abs(px - pt.x) <= 75 && Math.abs(py - tagY) <= 18) {
                 return island;
             }
         }
@@ -396,6 +407,35 @@
 
         villageName.textContent = `🏝️ ${island.name}`;
         villageDesc.textContent = island.desc;
+
+        // Island Switcher Bar
+        let selectorBar = document.getElementById('villageSelectorBar');
+        if (!selectorBar) {
+            selectorBar = document.createElement('div');
+            selectorBar.id = 'villageSelectorBar';
+            selectorBar.style.display = 'flex';
+            selectorBar.style.alignItems = 'center';
+            selectorBar.style.justifyContent = 'space-between';
+            selectorBar.style.marginBottom = '12px';
+            selectorBar.style.gap = '8px';
+            villageInfo.insertBefore(selectorBar, villageStats);
+        }
+        const currentIndex = islandsData.findIndex(i => i.id === selectedVillageId);
+        selectorBar.innerHTML = `
+            <button id="btnPrevIsland" class="action-btn" style="width:auto; padding:4px 10px; margin:0; font-size:0.8rem;">◀ Prev</button>
+            <span style="font-size:0.8rem; color:#7ee8fa; font-weight:600;">Island ${currentIndex + 1} / ${islandsData.length}</span>
+            <button id="btnNextIsland" class="action-btn" style="width:auto; padding:4px 10px; margin:0; font-size:0.8rem;">Next ▶</button>
+        `;
+        document.getElementById('btnPrevIsland').addEventListener('click', (e) => {
+            e.stopPropagation();
+            const nextIdx = (currentIndex - 1 + islandsData.length) % islandsData.length;
+            selectVillage(islandsData[nextIdx].id);
+        });
+        document.getElementById('btnNextIsland').addEventListener('click', (e) => {
+            e.stopPropagation();
+            const nextIdx = (currentIndex + 1) % islandsData.length;
+            selectVillage(islandsData[nextIdx].id);
+        });
 
         // Calculate yields
         const b = island.buildings;
@@ -572,22 +612,23 @@
         });
     });
 
-    // Mouse Interaction
-    canvas.addEventListener('mousemove', (e) => {
+    // Mouse & Touch Interaction
+    function handlePointerMove(clientX, clientY) {
         const rect = canvas.getBoundingClientRect();
-        mousePos.x = e.clientX - rect.left;
-        mousePos.y = e.clientY - rect.top;
+        mousePos.x = clientX - rect.left;
+        mousePos.y = clientY - rect.top;
 
         const hovered = getIslandAt(mousePos.x, mousePos.y);
         hoveredVillageId = hovered ? hovered.id : null;
         canvas.style.cursor = hovered ? 'pointer' : 'default';
-    });
+        document.body.style.cursor = hovered ? 'pointer' : 'default';
+    }
 
-    canvas.addEventListener('click', (e) => {
+    function handlePointerClick(clientX, clientY) {
         initAudio();
         const rect = canvas.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        const clickY = e.clientY - rect.top;
+        const clickX = clientX - rect.left;
+        const clickY = clientY - rect.top;
 
         const clickedIsland = getIslandAt(clickX, clickY);
 
@@ -624,7 +665,34 @@
         } else {
             selectVillage(null);
         }
+    }
+
+    window.addEventListener('mousemove', (e) => {
+        handlePointerMove(e.clientX, e.clientY);
     });
+
+    canvas.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handlePointerClick(e.clientX, e.clientY);
+    });
+
+    window.addEventListener('click', (e) => {
+        // If clicking inside interactive UI cards or header, let those elements handle it
+        if (e.target.closest('#header') || e.target.closest('#panel > div') || e.target.closest('button')) {
+            return;
+        }
+        handlePointerClick(e.clientX, e.clientY);
+    });
+
+    window.addEventListener('touchstart', (e) => {
+        if (e.touches && e.touches.length > 0) {
+            const touch = e.touches[0];
+            if (touch.target.closest('#header') || touch.target.closest('#panel > div') || touch.target.closest('button')) {
+                return;
+            }
+            handlePointerClick(touch.clientX, touch.clientY);
+        }
+    }, { passive: true });
 
     window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
